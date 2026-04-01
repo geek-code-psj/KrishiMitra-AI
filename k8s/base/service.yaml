@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: krishimitra-api
+  namespace: krishimitra
+  labels:
+    app: krishimitra-api
+    tier: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: krishimitra-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krishimitra-ml
+  namespace: krishimitra
+  labels:
+    app: krishimitra-ml
+    tier: ml
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: grpc
+  selector:
+    app: krishimitra-ml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krishimitra-voice
+  namespace: krishimitra
+  labels:
+    app: krishimitra-voice
+    tier: voice
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: krishimitra-voice

@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./models/cache:/app/models/cache
+    environment:
+      - ENV=development
+      - DEBUG=true
+      - DATABASE_URL=sqlite+aiosqlite:///./krishimitra.db
+      - REDIS_URL=redis://redis:6379/0
+      # Change this to your 32-character secret key
+      - SECRET_KEY=super-secret-key-for-local-dev-only
+      # Provide Ollama URL as requested for sovereign AI
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=qwen3-coder
+    depends_on:
+      - redis
+    # To enable host.docker.internal on Linux, use extra_hosts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

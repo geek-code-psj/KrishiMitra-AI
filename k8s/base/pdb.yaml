@@ -1,0 +1,21 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: krishimitra-api-pdb
+  namespace: krishimitra
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: krishimitra-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: krishimitra-ml-pdb
+  namespace: krishimitra
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: krishimitra-ml

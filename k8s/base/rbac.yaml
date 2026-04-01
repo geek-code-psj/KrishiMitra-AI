@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: krishimitra-api
+  namespace: krishimitra
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/krishimitra-api-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: krishimitra-api-role
+  namespace: krishimitra
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: krishimitra-api-binding
+  namespace: krishimitra
+subjects:
+- kind: ServiceAccount
+  name: krishimitra-api
+  namespace: krishimitra
+roleRef:
+  kind: Role
+  name: krishimitra-api-role
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(python -m py_compile app/main.py)",
+      "Bash(python -m py_compile app/core/config.py)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(python -m py_compile app/api/v1/router.py)",
+      "Bash(python -m py_compile app/schemas/voice.py)",
+      "Bash(echo \"config.py Exit code: $?\")",
+      "Bash(echo \"router.py Exit code: $?\")",
+      "Bash(echo \"voice.py schemas Exit code: $?\")"
+    ]
+  }
+}

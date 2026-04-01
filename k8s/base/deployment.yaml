@@ -1,0 +1,217 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krishimitra-api
+  namespace: krishimitra
+  labels:
+    app: krishimitra-api
+    version: v1
+    tier: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: krishimitra-api
+  template:
+    metadata:
+      labels:
+        app: krishimitra-api
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: krishimitra-api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: api
+        image: krishimitra/api:v1.0.0
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: krishimitra-config
+              key: ENV
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: krishimitra-secrets
+              key: SECRET_KEY
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: krishimitra-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: krishimitra-secrets
+              key: REDIS_URL
+        - name: AIKOSH_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: krishimitra-secrets
+              key: AIKOSH_API_KEY
+        - name: PROMETHEUS_MULTIPROC_DIR
+          value: "/tmp/prometheus"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: model-cache
+          mountPath: /app/models/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: model-cache-pvc
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - krishimitra-api
+              topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: krishimitra-api
+---
+# ML Service Deployment (separate for GPU/scaling)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krishimitra-ml
+  namespace: krishimitra
+  labels:
+    app: krishimitra-ml
+    version: v1
+    tier: ml
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: krishimitra-ml
+  template:
+    metadata:
+      labels:
+        app: krishimitra-ml
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: krishimitra-api
+      containers:
+      - name: ml
+        image: krishimitra/ml:v1.0.0
+        ports:
+        - name: grpc
+          containerPort: 8080
+        env:
+        - name: MODEL_CACHE_DIR
+          value: "/app/models/cache"
+        - name: DEFAULT_MODEL_DEVICE
+          value: "cpu"
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "4Gi"
+          limits:
+            cpu: "4000m"
+            memory: "8Gi"
+            # nvidia.com/gpu: "1"  # Uncomment for GPU nodes
+        volumeMounts:
+        - name: model-cache
+          mountPath: /app/models/cache
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: model-cache-pvc
+---
+# Voice Service Deployment (separate for audio processing)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krishimitra-voice
+  namespace: krishimitra
+  labels:
+    app: krishimitra-voice
+    version: v1
+    tier: voice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: krishimitra-voice
+  template:
+    metadata:
+      labels:
+        app: krishimitra-voice
+        version: v1
+    spec:
+      serviceAccountName: krishimitra-api
+      containers:
+      - name: voice
+        image: krishimitra/voice:v1.0.0
+        ports:
+        - name: http
+          containerPort: 8000
+        env:
+        - name: SARVAM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: krishimitra-secrets
+              key: SARVAM_API_KEY
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"

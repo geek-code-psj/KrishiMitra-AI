@@ -1,0 +1,199 @@
+version: '3.8'
+
+services:
+  # Main API
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: production
+    image: krishimitra/api:latest
+    container_name: krishimitra-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=development
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/krishimitra
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DEBUG=true
+    volumes:
+      - ../backend/app:/app/app
+      - model-cache:/app/models/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+  # Celery Worker
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    image: krishimitra/worker:latest
+    container_name: krishimitra-worker
+    environment:
+      - ENV=development
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/krishimitra
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    volumes:
+      - ../backend/app:/app/app
+      - model-cache:/app/models/cache
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+  # Celery Beat (Scheduler)
+  beat:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    image: krishimitra/worker:latest
+    container_name: krishimitra-beat
+    command: celery -A app.core.celery_app beat -l info
+    environment:
+      - ENV=development
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - redis
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+  # PostgreSQL with PostGIS
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: krishimitra-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=krishimitra
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - krishimitra
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: krishimitra-redis
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - krishimitra
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # MLflow (Model Registry)
+  mlflow:
+    image: mlflow/mlflow:v2.18.0
+    container_name: krishimitra-mlflow
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://postgres:postgres@postgres:5432/mlflow
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow-data:/mlflow
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+  # MinIO (S3-compatible storage for models)
+  minio:
+    image: minio/minio:latest
+    container_name: krishimitra-minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: krishimitra-prometheus
+    volumes:
+      - ../infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: krishimitra-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../infra/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    ports:
+      - "3000:3000"
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    image: krishimitra/frontend:latest
+    container_name: krishimitra-frontend
+    ports:
+      - "3001:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    networks:
+      - krishimitra
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  model-cache:
+  mlflow-data:
+  minio-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  krishimitra:
+    driver: bridge

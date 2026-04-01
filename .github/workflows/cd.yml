@@ -1,0 +1,127 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/krishimitra-api:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/krishimitra-api:staging
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to EKS staging
+        run: |
+          aws eks update-kubeconfig --name krishimitra-staging
+          cd k8s/overlays/staging
+          kustomize edit set image krishimitra/api=${{ env.ECR_REGISTRY }}/krishimitra-api:${{ github.sha }}
+          kubectl apply -k .
+          kubectl rollout status deployment/krishimitra-api -n krishimitra --timeout=300s
+
+      - name: Run smoke tests
+        run: |
+          kubectl run smoke-test --rm -i --restart=Never \
+            --image=curlimages/curl:latest \
+            -- curl -f http://krishimitra-api.krishimitra.svc.cluster.local/health
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Deploy to EKS production (Canary)
+        run: |
+          aws eks update-kubeconfig --name krishimitra-production
+
+          # Deploy canary (10% traffic)
+          cd k8s/overlays/production
+          kustomize edit set image krishimitra/api=${{ env.ECR_REGISTRY }}/krishimitra-api:${{ github.sha }}
+
+          # Apply with canary strategy
+          kubectl apply -k .
+
+          # Wait for canary rollout
+          kubectl rollout status deployment/krishimitra-api-canary -n krishimitra --timeout=300s
+
+      - name: Canary analysis
+        run: |
+          # Run automated canary analysis
+          sleep 60
+
+          # Check error rate
+          ERROR_RATE=$(kubectl exec -n monitoring deploy/prometheus -- \
+            sh -c 'curl -s "http://localhost:9090/api/v1/query?query=sum(rate(http_requests_total{status=~\"5..\"}[1m]))/sum(rate(http_requests_total[1m]))"' | \
+            jq -r '.data.result[0].value[1] // "0"')
+
+          echo "Error rate: $ERROR_RATE"
+
+          if (( $(echo "$ERROR_RATE > 0.01" | bc -l) )); then
+            echo "Canary failed - error rate too high"
+            kubectl rollout undo deployment/krishimitra-api-canary -n krishimitra
+            exit 1
+          fi
+
+      - name: Promote to production
+        run: |
+          # Promote canary to full deployment
+          kubectl patch deployment krishimitra-api -n krishimitra -p \
+            '{"spec":{"template":{"spec":{"containers":[{"name":"api","image":"${{ env.ECR_REGISTRY }}/krishimitra-api:${{ github.sha }}"}]}}}}'
+
+          kubectl rollout status deployment/krishimitra-api -n krishimitra --timeout=300s
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          fields: repo,message,commit,author,action,eventName,ref
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
