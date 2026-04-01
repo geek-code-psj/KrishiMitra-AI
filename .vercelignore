@@ -1,0 +1,17 @@
+# Exclude backend from Vercel build
+backend/
+requirements.txt
+runtime.txt
+main.py
+Dockerfile
+docker-compose.yml
+.env
+.env.example
+*.py
+k8s/
+infra/
+docker/
+models/
+docs/
+ARCHITECTURE.md
+DEPLOYMENT.md
