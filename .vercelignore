@@ -1,4 +1,4 @@
-# Exclude backend from Vercel build
+# Ignore backend and non-frontend files
 backend/
 requirements.txt
 runtime.txt
@@ -15,3 +15,6 @@ models/
 docs/
 ARCHITECTURE.md
 DEPLOYMENT.md
+.git/
+.next/
+# Keep frontend!
