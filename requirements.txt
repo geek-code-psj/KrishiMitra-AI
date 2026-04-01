@@ -1,5 +1,5 @@
-# KrishiMitra AI - Backend Dependencies
-# Python 3.10+
+# KrishiMitra AI - Minimal Backend Dependencies
+# For deployment - includes only essential packages
 
 # FastAPI & Server
 fastapi==0.115.0
@@ -10,82 +10,39 @@ python-multipart==0.0.17
 
 # Database
 sqlalchemy==2.0.36
-asyncpg==0.30.0
 alembic==1.14.0
-psycopg2-binary==2.9.10
-geoalchemy2==0.16.0
 
-# Caching & Messaging
+# Caching
 redis==5.2.0
 celery==5.4.0
-aioredis==2.0.1
 
-# ML & AI
 # Core ML
 torch==2.5.0
 transformers==4.46.0
-sentence-transformers==3.2.0
 scikit-learn==1.5.0
-xgboost==2.1.0
-lightgbm==4.5.0
-
-# Time Series
-prophet==1.1.5
-statsmodels==0.14.0
 
 # Data Processing
 numpy==1.26.0
 pandas==2.2.0
-geopandas==1.0.0
-scipy==1.14.0
 
-# Audio Processing
-librosa==0.10.0
-soundfile==0.12.0
-pyaudio==0.2.14
-speechrecognition==3.11.0
-
-# Computer Vision
-opencv-python==4.10.0.84
-pillow==11.0.0
-
-# Model Serving
-onnxruntime==1.20.0
-mlflow==2.18.0
-
-# HTTP & API Clients
+# HTTP & API
 httpx==0.27.0
-aiohttp==3.11.0
 requests==2.32.0
 
 # Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
-
 cryptography==43.0.0
 
 # Utilities
 python-dateutil==2.9.0
 pytz==2024.2
-shapely==2.0.0
-networkx==3.4.0
-joblib==1.4.0
 tqdm==4.67.0
 
-# Monitoring & Logging
-prometheus-client==0.21.0
+# Logging
 structlog==24.4.0
-sentry-sdk==2.19.0
 
 # Testing
 pytest==8.3.0
 pytest-asyncio==0.24.0
-pytest-cov==6.0.0
-factory-boy==3.3.0
-faker==30.0.0
-
-# Development
-black==24.10.0
-isort==5.13.0
-flake8==7.1.0
