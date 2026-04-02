@@ -6,15 +6,26 @@ import os
 import sys
 
 # Ensure backend is in path
-backend_path = os.path.join(os.path.dirname(__file__), 'backend')
+print("--- STARTING KRISHIMITRA API PROXY ---")
+root_dir = os.path.dirname(os.path.abspath(__file__))
+backend_path = os.path.join(root_dir, 'backend')
+print(f"Root dir: {root_dir}")
+print(f"Adding to sys.path: {backend_path}")
+
 if backend_path not in sys.path:
     sys.path.insert(0, backend_path)
 
 # Now import the app
-from app.main import app
-
-# Expose app for gunicorn/uvicorn
-app = app
+print("Attempting to import app.main...")
+try:
+    from app.main import app as main_app
+    print("App import successful")
+    app = main_app
+except Exception as e:
+    print(f"FAILED TO IMPORT APP: {str(e)}")
+    import traceback
+    traceback.print_exc()
+    raise
 
 if __name__ == "__main__":
     import uvicorn
