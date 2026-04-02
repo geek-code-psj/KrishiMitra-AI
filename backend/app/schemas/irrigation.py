@@ -4,14 +4,14 @@ Pydantic models for irrigation scheduling endpoints
 """
 
 from typing import Optional, List, Dict, Any
-from datetime import date, datetime
+import datetime
 from pydantic import BaseModel, Field
 
 
 class MoistureReading(BaseModel):
     """Single soil moisture reading."""
 
-    date: date = Field(..., description="Reading date")
+    date: datetime.date = Field(..., description="Reading date")
     moisture_content: float = Field(
         ...,
         description="Volumetric soil moisture content (%)",
@@ -44,14 +44,14 @@ class MoistureData(BaseModel):
     max_moisture: float = Field(..., description="Maximum recorded")
     trend: str = Field(..., description="Moisture trend (increasing, decreasing, stable)")
     data_source: str = Field(default="VIC Model - AIKosh", description="Data source")
-    last_updated: datetime = Field(..., description="Last data update")
+    last_updated: datetime.datetime = Field(..., description="Last data update")
 
 
 class IrrigationEvent(BaseModel):
     """Single irrigation event in schedule."""
 
     id: str = Field(..., description="Event ID")
-    date: date = Field(..., description="Scheduled date")
+    date: datetime.date = Field(..., description="Scheduled date")
     start_time: Optional[str] = Field(None, description="Recommended start time")
     duration_minutes: int = Field(..., description="Recommended duration")
     water_volume_liters: Optional[float] = Field(
@@ -76,7 +76,7 @@ class IrrigationEvent(BaseModel):
         description="Expected weather conditions"
     )
     status: str = Field(default="scheduled", description="Event status")
-    completed: Optional[datetime] = Field(None, description="Completion timestamp")
+    completed: Optional[datetime.datetime] = Field(None, description="Completion timestamp")
 
 
 class IrrigationScheduleRequest(BaseModel):
@@ -87,7 +87,7 @@ class IrrigationScheduleRequest(BaseModel):
     area_acres: float = Field(..., gt=0, description="Cultivated area")
     soil_type: str = Field(..., description="Soil type")
     crop_stage: str = Field(..., description="Current crop stage")
-    planting_date: Optional[date] = Field(None, description="Planting date")
+    planting_date: Optional[datetime.date] = Field(None, description="Planting date")
     farmer_id: Optional[str] = Field(None, description="Farmer ID")
     days: int = Field(default=14, ge=7, le=30, description="Schedule horizon")
     constraints: Optional[Dict[str, Any]] = Field(
@@ -130,7 +130,7 @@ class IrrigationScheduleResponse(BaseModel):
         ...,
         description="When to check for schedule updates"
     )
-    generated_at: datetime = Field(..., description="Generation timestamp")
+    generated_at: datetime.datetime = Field(..., description="Generation timestamp")
     model_version: str = Field(..., description="Model version used")
 
 
@@ -177,5 +177,5 @@ class IrrigationAlert(BaseModel):
     message: str = Field(..., description="Alert message")
     district: str = Field(..., description="Affected district")
     recommended_action: str = Field(..., description="Recommended action")
-    valid_until: date = Field(..., description="Alert validity")
-    created_at: datetime = Field(..., description="Alert timestamp")
+    valid_until: datetime.date = Field(..., description="Alert validity")
+    created_at: datetime.datetime = Field(..., description="Alert timestamp")

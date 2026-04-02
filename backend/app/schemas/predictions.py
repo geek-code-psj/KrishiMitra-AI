@@ -4,7 +4,7 @@ Pydantic models for yield and price prediction endpoints
 """
 
 from typing import Optional, List, Dict, Any
-from datetime import date
+import datetime
 from pydantic import BaseModel, Field
 
 
@@ -60,13 +60,13 @@ class YieldPredictionResponse(BaseModel):
         description="Above/below/average compared to historical"
     )
     model_version: str = Field(..., description="ML model version")
-    prediction_date: date = Field(..., description="Date of prediction")
+    prediction_date: datetime.date = Field(..., description="Date of prediction")
 
 
 class PricePoint(BaseModel):
     """Individual price forecast point."""
 
-    date: date = Field(..., description="Forecast date")
+    date: datetime.date = Field(..., description="Forecast date")
     price: float = Field(..., description="Predicted price per quintal (INR)")
     confidence_lower: float = Field(..., description="Lower bound of confidence interval")
     confidence_upper: float = Field(..., description="Upper bound of confidence interval")
@@ -87,7 +87,7 @@ class PricePredictionResponse(BaseModel):
     trend_percentage: float = Field(..., description="Trend percentage over forecast period")
     volatility: str = Field(..., description="Expected volatility (low, medium, high)")
     seasonal_factor: str = Field(..., description="Seasonal price factor")
-    best_selling_window: Optional[Dict[str, date]] = Field(
+    best_selling_window: Optional[Dict[str, datetime.date]] = Field(
         None,
         description="Recommended date range to sell"
     )
@@ -96,7 +96,7 @@ class PricePredictionResponse(BaseModel):
         description="Last 30 days historical prices"
     )
     model_version: str = Field(..., description="ML model version")
-    prediction_date: date = Field(..., description="Date of prediction")
+    prediction_date: datetime.date = Field(..., description="Date of prediction")
 
 
 class CropPlanRequest(BaseModel):
@@ -153,4 +153,4 @@ class CropPlanResponse(BaseModel):
         None,
         description="Market insights for recommended crops"
     )
-    generated_at: date = Field(..., description="Generation date")
+    generated_at: datetime.date = Field(..., description="Generation date")
