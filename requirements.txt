@@ -44,6 +44,11 @@ python-dateutil==2.9.0
 pytz==2024.2
 tqdm==4.67.0
 
+# Voice Processing
+librosa==0.10.2
+soundfile==0.12.1
+numba>=0.59.0
+
 # Logging
 structlog==24.4.0
 
