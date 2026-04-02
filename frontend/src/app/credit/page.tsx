@@ -363,7 +363,7 @@ export default function CreditPage() {
                           <td className="py-3 text-right">{scheme.amount}</td>
                           <td className="py-3 text-right">{scheme.interest}</td>
                           <td className="py-3 text-center">
-                            <Badge variant="outline">7-14 days</Badge>
+                            <Badge variant="info">7-14 days</Badge>
                           </td>
                           <td className="py-3 text-center">
                             <Button variant="ghost" size="sm">
@@ -488,7 +488,7 @@ export default function CreditPage() {
                         <GraduationCap className="h-5 w-5 text-purple-600" />
                         <h4 className="font-medium">{center.name}</h4>
                       </div>
-                      <Badge variant="outline" className="mt-2">
+                      <Badge variant="info" className="mt-2">
                         {center.type}
                       </Badge>
                       <p className="mt-2 text-sm text-zinc-500">

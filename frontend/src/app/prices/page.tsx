@@ -396,7 +396,7 @@ export default function PricesPage() {
                           Current: ₹{alert.current} | Target: ₹{alert.target}
                         </p>
                       </div>
-                      <Badge variant={alert.type === 'price_drop' ? 'destructive' : 'success'}>
+                      <Badge variant={alert.type === 'price_drop' ? 'danger' : 'success'}>
                         {alert.type === 'price_drop' ? 'Drop Alert' : 'Rise Alert'}
                       </Badge>
                     </div>
@@ -451,7 +451,7 @@ export default function PricesPage() {
                         <Badge
                           variant={
                             item.volatility === 'High'
-                              ? 'destructive'
+                              ? 'danger'
                               : item.volatility === 'Medium'
                               ? 'warning'
                               : 'success'

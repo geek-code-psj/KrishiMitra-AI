@@ -336,7 +336,7 @@ export default function ClimatePage() {
                         <Badge
                           variant={
                             risk.impact === 'High'
-                              ? 'destructive'
+                              ? 'danger'
                               : risk.impact === 'Medium'
                               ? 'warning'
                               : 'success'
@@ -485,7 +485,7 @@ export default function ClimatePage() {
                         <td className="py-3">
                           <div className="flex gap-1">
                             <Badge variant="success">High Yielding</Badge>
-                            <Badge variant="outline">Disease Resistant</Badge>
+                            <Badge variant="info">Disease Resistant</Badge>
                           </div>
                         </td>
                       </tr>
@@ -496,8 +496,8 @@ export default function ClimatePage() {
                         <td className="py-3 text-right">20</td>
                         <td className="py-3">
                           <div className="flex gap-1">
-                            <Badge variant="outline">Rust Resistant</Badge>
-                            <Badge variant="outline">High Protein</Badge>
+                            <Badge variant="info">Water Efficient</Badge>
+                            <Badge variant="info">Short Duration</Badge>
                           </div>
                         </td>
                       </tr>
@@ -509,7 +509,7 @@ export default function ClimatePage() {
                         <td className="py-3">
                           <div className="flex gap-1">
                             <Badge variant="success">Drought Tolerant</Badge>
-                            <Badge variant="outline">Heat Tolerant</Badge>
+                            <Badge variant="info">Heat Tolerant</Badge>
                           </div>
                         </td>
                       </tr>
