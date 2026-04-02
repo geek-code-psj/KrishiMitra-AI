@@ -1,5 +1,6 @@
 # KrishiMitra AI - Minimal Backend Dependencies
 # For deployment - includes only essential packages
+-e ./backend
 
 # FastAPI & Server
 fastapi==0.115.0

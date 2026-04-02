@@ -1,5 +1,6 @@
 # KrishiMitra AI - Backend Dependencies
 # Python 3.10+
+-e .
 
 # FastAPI & Server
 fastapi==0.115.0
