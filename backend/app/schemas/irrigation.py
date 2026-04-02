@@ -126,7 +126,7 @@ class IrrigationScheduleResponse(BaseModel):
         None,
         description="Drought risk level (low, medium, high)"
     )
-    next_check_date: date = Field(
+    next_check_date: datetime.date = Field(
         ...,
         description="When to check for schedule updates"
     )

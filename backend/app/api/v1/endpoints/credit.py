@@ -12,8 +12,8 @@ router = APIRouter()
 @router.get("/gaps")
 async def get_credit_gaps(
     district: str,
-    land_holding: float = Query(..., gt=0, description="Land holding in acres"),
     crop: str,
+    land_holding: float = Query(..., gt=0, description="Land holding in acres"),
     annual_income: float = Query(..., gt=0),
 ) -> dict:
     """Analyze credit gaps based on farmer profile."""

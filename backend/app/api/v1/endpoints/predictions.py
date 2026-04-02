@@ -6,7 +6,7 @@ Yield forecasting and commodity price prediction
 from typing import Optional, List
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, Path, HTTPException
 import structlog
 
 from app.services.ml.yield_predictor import YieldPredictor
@@ -28,7 +28,7 @@ router = APIRouter()
 async def predict_yield(
     crop: str,
     district: str,
-    season: str = Query(..., description="kharif, rabi, or summer"),
+    season: str = Path(..., description="kharif, rabi, or summer"),
     area_acres: float = Query(..., gt=0, description="Cultivated area in acres"),
     variety: Optional[str] = Query(None, description="Crop variety"),
     farmer_id: Optional[str] = Query(None, description="Farmer ID for personalized factors"),
