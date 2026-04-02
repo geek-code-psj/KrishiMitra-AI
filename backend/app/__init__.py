@@ -1,0 +1,3 @@
+"""
+KrishiMitra AI - App Package
+"""
