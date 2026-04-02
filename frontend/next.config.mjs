@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optimize output for standalone (Docker)
-  output: 'standalone',
   // Reduce bundle size
   compress: true,
   // Disable source maps in production to reduce size
