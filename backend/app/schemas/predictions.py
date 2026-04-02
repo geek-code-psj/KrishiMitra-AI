@@ -59,7 +59,7 @@ class YieldPredictionResponse(BaseModel):
         None,
         description="Above/below/average compared to historical"
     )
-    model_version: str = Field(..., description="ML model version")
+    ai_model_version: str = Field(..., description="ML model version")
     prediction_date: datetime.date = Field(..., description="Date of prediction")
 
 
@@ -95,7 +95,7 @@ class PricePredictionResponse(BaseModel):
         None,
         description="Last 30 days historical prices"
     )
-    model_version: str = Field(..., description="ML model version")
+    ai_model_version: str = Field(..., description="ML model version")
     prediction_date: datetime.date = Field(..., description="Date of prediction")
 
 

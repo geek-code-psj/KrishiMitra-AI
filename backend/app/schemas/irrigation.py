@@ -131,7 +131,7 @@ class IrrigationScheduleResponse(BaseModel):
         description="When to check for schedule updates"
     )
     generated_at: datetime.datetime = Field(..., description="Generation timestamp")
-    model_version: str = Field(..., description="Model version used")
+    ai_model_version: str = Field(..., description="Model version used")
 
 
 class WaterBudget(BaseModel):
