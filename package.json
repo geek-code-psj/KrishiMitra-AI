@@ -1,0 +1,18 @@
+{
+  "name": "krishimitra-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "next": "^14.2.5"
+  },
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "install": "cd frontend && npm install"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}
