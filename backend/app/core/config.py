@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     WORKERS: int = 4
 
     # Security
-    SECRET_KEY: str = Field(..., description="JWT secret key")
+    SECRET_KEY: str = Field(default="insecure-default-key-for-dev-only", description="JWT secret key")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     ALGORITHM: str = "HS256"
 
