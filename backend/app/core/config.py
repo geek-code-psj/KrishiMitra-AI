@@ -134,7 +134,11 @@ class Settings(BaseSettings):
 
     @property
     def database_async_url(self) -> str:
-        """Get async database URL."""
+        """Get async database URL, ensuring it uses the asyncpg driver for PostgreSQL."""
+        if self.DATABASE_URL.startswith("postgres://"):
+            return self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+        if self.DATABASE_URL.startswith("postgresql://"):
+            return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
         return self.DATABASE_URL
 
     @property
