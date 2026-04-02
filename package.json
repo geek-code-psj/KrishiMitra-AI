@@ -9,7 +9,7 @@
     "next": "^14.2.5"
   },
   "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+    "build": "npm run build --workspace=frontend"
   },
   "workspaces": [
     "frontend"
